@@ -68,16 +68,16 @@ class MicroPresenter implements Application\IPresenter
 		}
 
 		$params = $request->getParameters();
-		if (!isset($params['callback'])) {
-			throw new Application\BadRequestException('Parameter callback is missing.');
+		$callback = isset($params['callback']) ? $params['callback'] : null;
+		if (!is_object($callback) || !is_callable($callback)) {
+			throw new Application\BadRequestException('Parameter callback is not a valid closure.');
 		}
-		$callback = $params['callback'];
-		$reflection = Nette\Utils\Callback::toReflection(Nette\Utils\Callback::check($callback));
+		$reflection = Nette\Utils\Callback::toReflection($callback);
 
 		if ($this->context) {
 			foreach ($reflection->getParameters() as $param) {
-				if ($param->getClass()) {
-					$params[$param->getName()] = $this->context->getByType($param->getClass()->getName(), false);
+				if ($type = Nette\Utils\Reflection::getParameterType($param)) {
+					$params[$param->getName()] = $this->context->getByType($type, false);
 				}
 			}
 		}

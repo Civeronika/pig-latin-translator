@@ -5,6 +5,8 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
+declare(strict_types=1);
+
 namespace Nette\PhpGenerator;
 
 use Nette;
@@ -20,13 +22,14 @@ use Nette\Utils\Strings;
  * - variable amount of use statements
  * - one or more class declarations
  */
-class PhpNamespace
+final class PhpNamespace
 {
 	use Nette\SmartObject;
 
-	private static $keywords = [
-		'string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'array' => 1,
-		'callable' => 1, 'iterable' => 1, 'void' => 1, 'self' => 1, 'parent' => 1,
+	private const KEYWORDS = [
+		'string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'array' => 1, 'object' => 1,
+		'callable' => 1, 'iterable' => 1, 'void' => 1, 'self' => 1, 'parent' => 1, 'static' => 1,
+		'mixed' => 1, 'null' => 1, 'false' => 1,
 	];
 
 	/** @var string */
@@ -42,64 +45,50 @@ class PhpNamespace
 	private $classes = [];
 
 
-	/**
-	 * @param  string|null
-	 */
-	public function __construct($name = null)
+	public function __construct(string $name)
 	{
-		if ($name && !Helpers::isNamespaceIdentifier($name)) {
+		if ($name !== '' && !Helpers::isNamespaceIdentifier($name)) {
 			throw new Nette\InvalidArgumentException("Value '$name' is not valid name.");
 		}
-		$this->name = (string) $name;
+		$this->name = $name;
 	}
 
 
-	/** @deprecated */
-	public function setName($name)
+	public function getName(): string
 	{
-		$this->__construct($name);
-		return $this;
+		return $this->name;
 	}
 
 
 	/**
-	 * @return string|null
-	 */
-	public function getName()
-	{
-		return $this->name ?: null;
-	}
-
-
-	/**
-	 * @param  bool
 	 * @return static
 	 * @internal
 	 */
-	public function setBracketedSyntax($state = true)
+	public function setBracketedSyntax(bool $state = true): self
 	{
-		$this->bracketedSyntax = (bool) $state;
+		$this->bracketedSyntax = $state;
 		return $this;
 	}
 
 
-	/**
-	 * @return bool
-	 */
-	public function getBracketedSyntax()
+	public function hasBracketedSyntax(): bool
+	{
+		return $this->bracketedSyntax;
+	}
+
+
+	/** @deprecated  use hasBracketedSyntax() */
+	public function getBracketedSyntax(): bool
 	{
 		return $this->bracketedSyntax;
 	}
 
 
 	/**
-	 * @param  string
-	 * @param  string
-	 * @param  string
 	 * @throws InvalidStateException
 	 * @return static
 	 */
-	public function addUse($name, $alias = null, &$aliasOut = null)
+	public function addUse(string $name, string $alias = null, string &$aliasOut = null): self
 	{
 		$name = ltrim($name, '\\');
 		if ($alias === null && $this->name === Helpers::extractNamespace($name)) {
@@ -125,34 +114,29 @@ class PhpNamespace
 
 		$aliasOut = $alias;
 		$this->uses[$alias] = $name;
+		asort($this->uses);
 		return $this;
 	}
 
 
-	/**
-	 * @return string[]
-	 */
-	public function getUses()
+	/** @return string[] */
+	public function getUses(): array
 	{
 		return $this->uses;
 	}
 
 
-	/**
-	 * @param  string
-	 * @return string
-	 */
-	public function unresolveName($name)
+	public function unresolveName(string $name): string
 	{
-		if (isset(self::$keywords[strtolower($name)]) || $name === '') {
+		if (isset(self::KEYWORDS[strtolower($name)]) || $name === '') {
 			return $name;
 		}
 		$name = ltrim($name, '\\');
 		$res = null;
 		$lower = strtolower($name);
-		foreach ($this->uses as $alias => $for) {
-			if (Strings::startsWith($lower . '\\', strtolower($for) . '\\')) {
-				$short = $alias . substr($name, strlen($for));
+		foreach ($this->uses as $alias => $original) {
+			if (Strings::startsWith($lower . '\\', strtolower($original) . '\\')) {
+				$short = $alias . substr($name, strlen($original));
 				if (!isset($res) || strlen($res) > strlen($short)) {
 					$res = $short;
 				}
@@ -167,79 +151,55 @@ class PhpNamespace
 	}
 
 
-	/**
-	 * @param  string
-	 * @return ClassType
-	 */
-	public function addClass($name)
+	/** @return static */
+	public function add(ClassType $class): self
 	{
-		if (!isset($this->classes[$name])) {
-			$this->addUse($this->name . '\\' . $name);
-			$this->classes[$name] = new ClassType($name, $this);
+		$name = $class->getName();
+		if ($name === null) {
+			throw new Nette\InvalidArgumentException('Class does not have a name.');
 		}
-		return $this->classes[$name];
+		$this->addUse($this->name . '\\' . $name);
+		$this->classes[$name] = $class;
+		return $this;
 	}
 
 
-	/**
-	 * @param  string
-	 * @return ClassType
-	 */
-	public function addInterface($name)
+	public function addClass(string $name): ClassType
 	{
-		return $this->addClass($name)->setType(ClassType::TYPE_INTERFACE);
+		$this->add($class = new ClassType($name, $this));
+		return $class;
 	}
 
 
-	/**
-	 * @param  string
-	 * @return ClassType
-	 */
-	public function addTrait($name)
+	public function addInterface(string $name): ClassType
 	{
-		return $this->addClass($name)->setType(ClassType::TYPE_TRAIT);
+		return $this->addClass($name)->setInterface();
 	}
 
 
-	/**
-	 * @return ClassType[]
-	 */
-	public function getClasses()
+	public function addTrait(string $name): ClassType
+	{
+		return $this->addClass($name)->setTrait();
+	}
+
+
+	/** @return ClassType[] */
+	public function getClasses(): array
 	{
 		return $this->classes;
 	}
 
 
-	/**
-	 * @return string PHP code
-	 */
-	public function __toString()
+	public function __toString(): string
 	{
-		$uses = [];
-		asort($this->uses);
-		foreach ($this->uses as $alias => $name) {
-			$useNamespace = Helpers::extractNamespace($name);
-
-			if ($this->name !== $useNamespace) {
-				if ($alias === $name || substr($name, -(strlen($alias) + 1)) === '\\' . $alias) {
-					$uses[] = "use {$name};";
-				} else {
-					$uses[] = "use {$name} as {$alias};";
-				}
+		try {
+			return (new Printer)->printNamespace($this);
+		} catch (\Throwable $e) {
+			if (PHP_VERSION_ID >= 70400) {
+				throw $e;
 			}
-		}
-
-		$body = ($uses ? implode("\n", $uses) . "\n\n" : '')
-			. implode("\n", $this->classes);
-
-		if ($this->bracketedSyntax) {
-			return 'namespace' . ($this->name ? ' ' . $this->name : '') . " {\n\n"
-				. Strings::indent($body)
-				. "\n}\n";
-
-		} else {
-			return ($this->name ? "namespace {$this->name};\n\n" : '')
-				. $body;
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
 		}
 	}
 }

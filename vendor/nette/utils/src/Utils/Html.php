@@ -362,7 +362,7 @@ class Html implements \ArrayAccess, \Countable, \IteratorAggregate, IHtmlString
 	 */
 	public function getText()
 	{
-		return html_entity_decode(strip_tags($this->getHtml()), ENT_QUOTES, 'UTF-8');
+		return html_entity_decode(strip_tags($this->getHtml()), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 	}
 
 
@@ -557,6 +557,9 @@ class Html implements \ArrayAccess, \Countable, \IteratorAggregate, IHtmlString
 			return $this->render();
 		} catch (\Exception $e) {
 		} catch (\Throwable $e) {
+		}
+		if (PHP_VERSION_ID >= 70400) {
+			throw $e;
 		}
 		trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
 	}

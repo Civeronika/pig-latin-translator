@@ -40,11 +40,8 @@ class DatabaseExtension extends Nette\DI\CompilerExtension
 	public function loadConfiguration()
 	{
 		$configs = $this->getConfig();
-		foreach ($configs as $k => $v) {
-			if (is_scalar($v)) {
-				$configs = ['default' => $configs];
-				break;
-			}
+		if (isset($configs['dsn']) && !is_array($configs['dsn'])) {
+			$configs = ['default' => $configs];
 		}
 
 		$defaults = $this->databaseDefaults;

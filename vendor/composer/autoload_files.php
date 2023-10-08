@@ -7,6 +7,5 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'a12da592622097d2b593a430e32e13fd' => $vendorDir . '/nette/utils/src/loader.php',
-    'e7a6fd2e7a869bb207158e9416bdd9b0' => $vendorDir . '/nette/application/src/compatibility.php',
-    '7745382c92b7799bf1294b1f43023ba2' => $vendorDir . '/tracy/tracy/src/shortcuts.php',
+    '19a7e2c3b1d506dcdc1b60aab8e102e4' => $vendorDir . '/tracy/tracy/src/Tracy/shortcuts.php',
 );

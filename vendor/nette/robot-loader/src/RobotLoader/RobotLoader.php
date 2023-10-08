@@ -87,29 +87,39 @@ class RobotLoader
 	 */
 	public function tryLoad($type)
 	{
-		$type = ltrim($type, '\\'); // PHP namespace bug #49143
+		if (isset($this->missing[$type]) && $this->missing[$type] >= self::RETRY_LIMIT) {
+			return;
+		}
+
 		$info = isset($this->classes[$type]) ? $this->classes[$type] : null;
 
 		if ($this->autoRebuild) {
+			$save = false;
+
+			if (!$this->refreshed) {
+				if (!$info || !is_file($info['file'])) {
+					$this->refreshClasses();
+					$save = true;
+
+				} elseif (filemtime($info['file']) !== $info['time']) {
+					$this->updateFile($info['file']);
+					$save = true;
+				}
+
+				$info = isset($this->classes[$type]) ? $this->classes[$type] : null;
+			}
+
 			if (!$info || !is_file($info['file'])) {
 				$missing = &$this->missing[$type];
 				$missing++;
-				if (!$this->refreshed && $missing <= self::RETRY_LIMIT) {
-					$this->refreshClasses();
-					$this->saveCache();
-				} elseif ($info) {
-					unset($this->classes[$type]);
-					$this->saveCache();
-				}
+				$save = $save || $info || ($missing <= self::RETRY_LIMIT);
+				unset($this->classes[$type]);
+				$info = null;
+			}
 
-			} elseif (!$this->refreshed && filemtime($info['file']) !== $info['time']) {
-				$this->updateFile($info['file']);
-				if (empty($this->classes[$type])) {
-					$this->missing[$type] = 0;
-				}
+			if ($save) {
 				$this->saveCache();
 			}
-			$info = isset($this->classes[$type]) ? $this->classes[$type] : null;
 		}
 
 		if ($info) {
@@ -253,11 +263,16 @@ class RobotLoader
 		$acceptFiles = is_array($this->acceptFiles) ? $this->acceptFiles : preg_split('#[,\s]+#', $this->acceptFiles);
 		$iterator = Nette\Utils\Finder::findFiles($acceptFiles)
 			->filter(function (SplFileInfo $file) use (&$disallow) {
-				return !isset($disallow[str_replace('\\', '/', $file->getRealPath())]);
+				return $file->getRealPath() === false
+					? true
+					: !isset($disallow[str_replace('\\', '/', $file->getRealPath())]);
 			})
 			->from($dir)
 			->exclude($ignoreDirs)
 			->filter($filter = function (SplFileInfo $dir) use (&$disallow) {
+				if ($dir->getRealPath() === false) {
+					return true;
+				}
 				$path = str_replace('\\', '/', $dir->getRealPath());
 				if (is_file("$path/netterobots.txt")) {
 					foreach (file("$path/netterobots.txt") as $s) {
@@ -343,8 +358,8 @@ class RobotLoader
 					case T_WHITESPACE:
 						continue 2;
 
-					case T_NS_SEPARATOR:
 					case T_STRING:
+					case PHP_VERSION_ID < 80000 ? T_NS_SEPARATOR : T_NAME_QUALIFIED:
 						if ($expected) {
 							$name .= $token[1];
 						}

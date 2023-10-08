@@ -5,10 +5,11 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 
+declare(strict_types=1);
+
 namespace Nette\PhpGenerator;
 
 use Nette;
-use Nette\Utils\Strings;
 
 
 /**
@@ -17,16 +18,20 @@ use Nette\Utils\Strings;
  * @property Method[] $methods
  * @property Property[] $properties
  */
-class ClassType
+final class ClassType
 {
 	use Nette\SmartObject;
 	use Traits\CommentAware;
 
-	const TYPE_CLASS = 'class';
+	public const
+		TYPE_CLASS = 'class',
+		TYPE_INTERFACE = 'interface',
+		TYPE_TRAIT = 'trait';
 
-	const TYPE_INTERFACE = 'interface';
-
-	const TYPE_TRAIT = 'trait';
+	public const
+		VISIBILITY_PUBLIC = 'public',
+		VISIBILITY_PROTECTED = 'protected',
+		VISIBILITY_PRIVATE = 'private';
 
 	/** @var PhpNamespace|null */
 	private $namespace;
@@ -35,7 +40,7 @@ class ClassType
 	private $name;
 
 	/** @var string  class|interface|trait */
-	private $type = 'class';
+	private $type = self::TYPE_CLASS;
 
 	/** @var bool */
 	private $final = false;
@@ -63,89 +68,53 @@ class ClassType
 
 
 	/**
-	 * @param  string|object
-	 * @return static
+	 * @param  string|object  $class
 	 */
-	public static function from($class)
+	public static function from($class): self
 	{
-		return (new Factory)->fromClassReflection(
-			$class instanceof \ReflectionClass ? $class : new \ReflectionClass($class)
-		);
+		return (new Factory)->fromClassReflection(new \ReflectionClass($class));
 	}
 
 
 	/**
-	 * @param  string|null
+	 * @param  string|object  $class
 	 */
-	public function __construct($name = null, PhpNamespace $namespace = null)
+	public static function withBodiesFrom($class): self
+	{
+		return (new Factory)->fromClassReflection(new \ReflectionClass($class), true);
+	}
+
+
+	public function __construct(string $name = null, PhpNamespace $namespace = null)
 	{
 		$this->setName($name);
 		$this->namespace = $namespace;
 	}
 
 
-	/**
-	 * @return string  PHP code
-	 */
-	public function __toString()
+	public function __toString(): string
 	{
-		$traits = [];
-		foreach ($this->traits as $trait => $resolutions) {
-			$traits[] = 'use ' . ($this->namespace ? $this->namespace->unresolveName($trait) : $trait)
-				. ($resolutions ? " {\n\t" . implode(";\n\t", $resolutions) . ";\n}" : ';');
+		try {
+			return (new Printer)->printClass($this, $this->namespace);
+		} catch (\Throwable $e) {
+			if (PHP_VERSION_ID >= 70400) {
+				throw $e;
+			}
+			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
+			return '';
 		}
-
-		$consts = [];
-		foreach ($this->consts as $const) {
-			$consts[] = Helpers::formatDocComment($const->getComment())
-				. ($const->getVisibility() ? $const->getVisibility() . ' ' : '')
-				. 'const ' . $const->getName() . ' = ' . Helpers::dump($const->getValue()) . ';';
-		}
-
-		$properties = [];
-		foreach ($this->properties as $property) {
-			$properties[] = Helpers::formatDocComment($property->getComment())
-				. ($property->getVisibility() ?: 'public') . ($property->isStatic() ? ' static' : '') . ' $' . $property->getName()
-				. ($property->value === null ? '' : ' = ' . Helpers::dump($property->value))
-				. ';';
-		}
-
-		$mapper = function (array $arr) {
-			return $this->namespace ? array_map([$this->namespace, 'unresolveName'], $arr) : $arr;
-		};
-
-		return Strings::normalize(
-			Helpers::formatDocComment($this->comment . "\n")
-			. ($this->abstract ? 'abstract ' : '')
-			. ($this->final ? 'final ' : '')
-			. ($this->name ? "$this->type $this->name " : '')
-			. ($this->extends ? 'extends ' . implode(', ', $mapper((array) $this->extends)) . ' ' : '')
-			. ($this->implements ? 'implements ' . implode(', ', $mapper($this->implements)) . ' ' : '')
-			. ($this->name ? "\n" : '') . "{\n"
-			. Strings::indent(
-				($this->traits ? implode("\n", $traits) . "\n\n" : '')
-				. ($this->consts ? implode("\n", $consts) . "\n\n" : '')
-				. ($this->properties ? implode("\n\n", $properties) . "\n\n\n" : '')
-				. ($this->methods ? implode("\n\n\n", $this->methods) . "\n" : ''), 1)
-			. '}'
-		) . ($this->name ? "\n" : '');
 	}
 
 
-	/**
-	 * @return PhpNamespace|null
-	 */
-	public function getNamespace()
+	/** @deprecated  an object can be in multiple namespaces */
+	public function getNamespace(): ?PhpNamespace
 	{
 		return $this->namespace;
 	}
 
 
-	/**
-	 * @param  string|null
-	 * @return static
-	 */
-	public function setName($name)
+	/** @return static */
+	public function setName(?string $name): self
 	{
 		if ($name !== null && !Helpers::isIdentifier($name)) {
 			throw new Nette\InvalidArgumentException("Value '$name' is not valid class name.");
@@ -155,22 +124,58 @@ class ClassType
 	}
 
 
-	/**
-	 * @return string|null
-	 */
-	public function getName()
+	public function getName(): ?string
 	{
 		return $this->name;
 	}
 
 
-	/**
-	 * @param  string
-	 * @return static
-	 */
-	public function setType($type)
+	/** @return static */
+	public function setClass(): self
 	{
-		if (!in_array($type, ['class', 'interface', 'trait'], true)) {
+		$this->type = self::TYPE_CLASS;
+		return $this;
+	}
+
+
+	public function isClass(): bool
+	{
+		return $this->type === self::TYPE_CLASS;
+	}
+
+
+	/** @return static */
+	public function setInterface(): self
+	{
+		$this->type = self::TYPE_INTERFACE;
+		return $this;
+	}
+
+
+	public function isInterface(): bool
+	{
+		return $this->type === self::TYPE_INTERFACE;
+	}
+
+
+	/** @return static */
+	public function setTrait(): self
+	{
+		$this->type = self::TYPE_TRAIT;
+		return $this;
+	}
+
+
+	public function isTrait(): bool
+	{
+		return $this->type === self::TYPE_TRAIT;
+	}
+
+
+	/** @return static */
+	public function setType(string $type): self
+	{
+		if (!in_array($type, [self::TYPE_CLASS, self::TYPE_INTERFACE, self::TYPE_TRAIT], true)) {
 			throw new Nette\InvalidArgumentException('Argument must be class|interface|trait.');
 		}
 		$this->type = $type;
@@ -178,86 +183,66 @@ class ClassType
 	}
 
 
-	/**
-	 * @return string
-	 */
-	public function getType()
+	public function getType(): string
 	{
 		return $this->type;
 	}
 
 
-	/**
-	 * @param  bool
-	 * @return static
-	 */
-	public function setFinal($state = true)
+	/** @return static */
+	public function setFinal(bool $state = true): self
 	{
-		$this->final = (bool) $state;
+		$this->final = $state;
 		return $this;
 	}
 
 
-	/**
-	 * @return bool
-	 */
-	public function isFinal()
+	public function isFinal(): bool
 	{
 		return $this->final;
 	}
 
 
-	/**
-	 * @param  bool
-	 * @return static
-	 */
-	public function setAbstract($state = true)
+	/** @return static */
+	public function setAbstract(bool $state = true): self
 	{
-		$this->abstract = (bool) $state;
+		$this->abstract = $state;
 		return $this;
 	}
 
 
-	/**
-	 * @return bool
-	 */
-	public function isAbstract()
+	public function isAbstract(): bool
 	{
 		return $this->abstract;
 	}
 
 
 	/**
-	 * @param  string|string[]
+	 * @param  string|string[]  $names
 	 * @return static
 	 */
-	public function setExtends($names)
+	public function setExtends($names): self
 	{
 		if (!is_string($names) && !is_array($names)) {
 			throw new Nette\InvalidArgumentException('Argument must be string or string[].');
 		}
-		$this->validate((array) $names);
+		$this->validateNames((array) $names);
 		$this->extends = $names;
 		return $this;
 	}
 
 
-	/**
-	 * @return string|string[]
-	 */
+	/** @return string|string[] */
 	public function getExtends()
 	{
 		return $this->extends;
 	}
 
 
-	/**
-	 * @param  string
-	 * @return static
-	 */
-	public function addExtend($name)
+	/** @return static */
+	public function addExtend(string $name): self
 	{
-		$this->validate([$name]);
+		$this->validateNames([$name]);
 		$this->extends = (array) $this->extends;
 		$this->extends[] = $name;
 		return $this;
@@ -265,109 +250,118 @@ class ClassType
 
 
 	/**
-	 * @param  string[]
+	 * @param  string[]  $names
 	 * @return static
 	 */
-	public function setImplements(array $names)
+	public function setImplements(array $names): self
 	{
-		$this->validate($names);
+		$this->validateNames($names);
 		$this->implements = $names;
 		return $this;
 	}
 
 
-	/**
-	 * @return string[]
-	 */
-	public function getImplements()
+	/** @return string[] */
+	public function getImplements(): array
 	{
 		return $this->implements;
 	}
 
 
-	/**
-	 * @param  string
-	 * @return static
-	 */
-	public function addImplement($name)
+	/** @return static */
+	public function addImplement(string $name): self
 	{
-		$this->validate([$name]);
+		$this->validateNames([$name]);
 		$this->implements[] = $name;
 		return $this;
 	}
 
 
+	/** @return static */
+	public function removeImplement(string $name): self
+	{
+		$key = array_search($name, $this->implements, true);
+		if ($key !== false) {
+			unset($this->implements[$key]);
+		}
+		return $this;
+	}
+
+
 	/**
-	 * @param  string[]
+	 * @param  string[]  $names
 	 * @return static
 	 */
-	public function setTraits(array $names)
+	public function setTraits(array $names): self
 	{
-		$this->validate($names);
+		$this->validateNames($names);
 		$this->traits = array_fill_keys($names, []);
 		return $this;
 	}
 
 
-	/**
-	 * @return string[]
-	 */
-	public function getTraits()
+	/** @return string[] */
+	public function getTraits(): array
 	{
 		return array_keys($this->traits);
 	}
 
 
-	/**
-	 * @param  string
-	 * @return static
-	 */
-	public function addTrait($name, array $resolutions = [])
+	/** @internal */
+	public function getTraitResolutions(): array
 	{
-		$this->validate([$name]);
+		return $this->traits;
+	}
+
+
+	/** @return static */
+	public function addTrait(string $name, array $resolutions = []): self
+	{
+		$this->validateNames([$name]);
 		$this->traits[$name] = $resolutions;
 		return $this;
 	}
 
 
-	/**
-	 * @deprecated  use setConstants()
-	 * @return static
-	 */
-	public function setConsts(array $consts)
+	/** @return static */
+	public function removeTrait(string $name): self
 	{
-		return $this->setConstants($consts);
-	}
-
-
-	/**
-	 * @deprecated  use getConstants()
-	 * @return array
-	 */
-	public function getConsts()
-	{
-		return array_map(function ($const) { return $const->getValue(); }, $this->consts);
-	}
-
-
-	/**
-	 * @deprecated  use addConstant()
-	 * @param  string
-	 * @param  mixed
-	 * @return static
-	 */
-	public function addConst($name, $value)
-	{
-		$this->addConstant($name, $value);
+		unset($this->traits[$name]);
 		return $this;
 	}
 
 
 	/**
-	 * @param  Constant[]|mixed[]
+	 * @param  Method|Property|Constant  $member
 	 * @return static
 	 */
-	public function setConstants(array $consts)
+	public function addMember($member): self
+	{
+		if ($member instanceof Method) {
+			if ($this->isInterface()) {
+				$member->setBody(null);
+			}
+			$this->methods[$member->getName()] = $member;
+
+		} elseif ($member instanceof Property) {
+			$this->properties[$member->getName()] = $member;
+
+		} elseif ($member instanceof Constant) {
+			$this->consts[$member->getName()] = $member;
+
+		} else {
+			throw new Nette\InvalidArgumentException('Argument must be Method|Property|Constant.');
+		}
+
+		return $this;
+	}
+
+
+	/**
+	 * @param  Constant[]|mixed[]  $consts
+	 * @return static
+	 */
+	public function setConstants(array $consts): self
 	{
 		$this->consts = [];
 		foreach ($consts as $k => $v) {
@@ -378,31 +372,32 @@ class ClassType
 	}
 
 
-	/**
-	 * @return Constant[]
-	 */
-	public function getConstants()
+	/** @return Constant[] */
+	public function getConstants(): array
 	{
 		return $this->consts;
 	}
 
 
-	/**
-	 * @param  string
-	 * @param  mixed
-	 * @return Constant
-	 */
-	public function addConstant($name, $value)
+	public function addConstant(string $name, $value): Constant
 	{
 		return $this->consts[$name] = (new Constant($name))->setValue($value);
 	}
 
 
+	/** @return static */
+	public function removeConstant(string $name): self
+	{
+		unset($this->consts[$name]);
+		return $this;
+	}
+
+
 	/**
-	 * @param  Property[]
+	 * @param  Property[]  $props
 	 * @return static
 	 */
-	public function setProperties(array $props)
+	public function setProperties(array $props): self
 	{
 		$this->properties = [];
 		foreach ($props as $v) {
@@ -415,19 +410,14 @@ class ClassType
 	}
 
 
-	/**
-	 * @return Property[]
-	 */
-	public function getProperties()
+	/** @return Property[] */
+	public function getProperties(): array
 	{
 		return $this->properties;
 	}
 
 
-	/**
-	 * @return Property
-	 */
-	public function getProperty($name)
+	public function getProperty(string $name): Property
 	{
 		if (!isset($this->properties[$name])) {
 			throw new Nette\InvalidArgumentException("Property '$name' not found.");
@@ -437,46 +427,56 @@ class ClassType
 
 
 	/**
-	 * @param  string  without $
-	 * @param  mixed
-	 * @return Property
+	 * @param  string  $name  without $
 	 */
-	public function addProperty($name, $value = null)
+	public function addProperty(string $name, $value = null): Property
 	{
 		return $this->properties[$name] = (new Property($name))->setValue($value);
 	}
 
 
 	/**
-	 * @param  Method[]
+	 * @param  string  $name without $
 	 * @return static
 	 */
-	public function setMethods(array $methods)
+	public function removeProperty(string $name): self
+	{
+		unset($this->properties[$name]);
+		return $this;
+	}
+
+
+	public function hasProperty(string $name): bool
+	{
+		return isset($this->properties[$name]);
+	}
+
+
+	/**
+	 * @param  Method[]  $methods
+	 * @return static
+	 */
+	public function setMethods(array $methods): self
 	{
 		$this->methods = [];
 		foreach ($methods as $v) {
 			if (!$v instanceof Method) {
 				throw new Nette\InvalidArgumentException('Argument must be Nette\PhpGenerator\Method[].');
 			}
-			$this->methods[$v->getName()] = $v->setNamespace($this->namespace);
+			$this->methods[$v->getName()] = $v;
 		}
 		return $this;
 	}
 
 
-	/**
-	 * @return Method[]
-	 */
-	public function getMethods()
+	/** @return Method[] */
+	public function getMethods(): array
 	{
 		return $this->methods;
 	}
 
 
-	/**
-	 * @return Method
-	 */
-	public function getMethod($name)
+	public function getMethod(string $name): Method
 	{
 		if (!isset($this->methods[$name])) {
 			throw new Nette\InvalidArgumentException("Method '$name' not found.");
@@ -485,28 +485,59 @@ class ClassType
 	}
 
 
-	/**
-	 * @param  string
-	 * @return Method
-	 */
-	public function addMethod($name)
+	public function addMethod(string $name): Method
 	{
-		$method = (new Method($name))->setNamespace($this->namespace);
-		if ($this->type === 'interface') {
-			$method->setBody(false);
+		$method = new Method($name);
+		if ($this->isInterface()) {
+			$method->setBody(null);
 		} else {
-			$method->setVisibility('public');
+			$method->setPublic();
 		}
 		return $this->methods[$name] = $method;
 	}
 
 
-	private function validate(array $names)
+	/** @return static */
+	public function removeMethod(string $name): self
+	{
+		unset($this->methods[$name]);
+		return $this;
+	}
+
+
+	public function hasMethod(string $name): bool
+	{
+		return isset($this->methods[$name]);
+	}
+
+
+	/** @throws Nette\InvalidStateException */
+	public function validate(): void
+	{
+		if ($this->abstract && $this->final) {
+			throw new Nette\InvalidStateException('Class cannot be abstract and final.');
+
+		} elseif (!$this->name && ($this->abstract || $this->final)) {
+			throw new Nette\InvalidStateException('Anonymous class cannot be abstract or final.');
+		}
+	}
+
+
+	private function validateNames(array $names): void
 	{
 		foreach ($names as $name) {
 			if (!Helpers::isNamespaceIdentifier($name, true)) {
 				throw new Nette\InvalidArgumentException("Value '$name' is not valid class name.");
 			}
 		}
+	}
+
+
+	public function __clone()
+	{
+		$clone = function ($item) { return clone $item; };
+		$this->consts = array_map($clone, $this->consts);
+		$this->properties = array_map($clone, $this->properties);
+		$this->methods = array_map($clone, $this->methods);
 	}
 }

@@ -83,7 +83,7 @@ use Nette;
  * @method array ttfText($size, $angle, $x, $y, $color, string $fontfile, string $text)
  * @property-read int $width
  * @property-read int $height
- * @property-read resource $imageResource
+ * @property-read resource|\GdImage $imageResource
  */
 class Image
 {
@@ -115,7 +115,7 @@ class Image
 
 	private static $formats = [self::JPEG => 'jpeg', self::PNG => 'png', self::GIF => 'gif', self::WEBP => 'webp'];
 
-	/** @var resource */
+	/** @var resource|\GdImage */
 	private $image;
 
 
@@ -179,9 +179,10 @@ class Image
 			throw new Nette\NotSupportedException('PHP extension GD is not loaded.');
 		}
 
-		if (func_num_args() > 1) {
-			$tmp = @getimagesizefromstring($s)[2]; // @ - strings smaller than 12 bytes causes read error
-			$format = isset(self::$formats[$tmp]) ? $tmp : null;
+		$format = @getimagesizefromstring($s)[2]; // @ - strings smaller than 12 bytes causes read error
+		if (!isset(self::$formats[$format])) {
+			$format = null;
+			throw new UnknownImageFileException('Unknown type of image.');
 		}
 
 		return new static(Callback::invokeSafe('imagecreatefromstring', [$s], function ($message) {
@@ -223,7 +224,7 @@ class Image
 
 	/**
 	 * Wraps GD image.
-	 * @param  resource
+	 * @param  resource|\GdImage  $image
 	 */
 	public function __construct($image)
 	{
@@ -254,12 +255,12 @@ class Image
 
 	/**
 	 * Sets image resource.
-	 * @param  resource
+	 * @param  resource|\GdImage  $image
 	 * @return static
 	 */
 	protected function setImageResource($image)
 	{
-		if (!is_resource($image) || get_resource_type($image) !== 'gd') {
+		if (!$image instanceof \GdImage && !(is_resource($image) && get_resource_type($image) === 'gd')) {
 			throw new Nette\InvalidArgumentException('Image is not valid.');
 		}
 		$this->image = $image;
@@ -269,7 +270,7 @@ class Image
 
 	/**
 	 * Returns image GD resource.
-	 * @return resource
+	 * @return resource|\GdImage
 	 */
 	public function getImageResource()
 	{
@@ -320,22 +321,24 @@ class Image
 	 */
 	public static function calculateSize($srcWidth, $srcHeight, $newWidth, $newHeight, $flags = self::FIT)
 	{
-		if (is_string($newWidth) && substr($newWidth, -1) === '%') {
-			$newWidth = (int) round($srcWidth / 100 * abs(substr($newWidth, 0, -1)));
+		if ($newWidth === null) {
+		} elseif (self::isPercent($newWidth)) {
+			$newWidth = (int) round($srcWidth / 100 * abs($newWidth));
 			$percents = true;
 		} else {
-			$newWidth = (int) abs($newWidth);
+			$newWidth = abs($newWidth);
 		}
 
-		if (is_string($newHeight) && substr($newHeight, -1) === '%') {
-			$newHeight = (int) round($srcHeight / 100 * abs(substr($newHeight, 0, -1)));
+		if ($newHeight === null) {
+		} elseif (self::isPercent($newHeight)) {
+			$newHeight = (int) round($srcHeight / 100 * abs($newHeight));
 			$flags |= empty($percents) ? 0 : self::STRETCH;
 		} else {
-			$newHeight = (int) abs($newHeight);
+			$newHeight = abs($newHeight);
 		}
 
 		if ($flags & self::STRETCH) { // non-proportional
-			if (empty($newWidth) || empty($newHeight)) {
+			if (!$newWidth || !$newHeight) {
 				throw new Nette\InvalidArgumentException('For stretching must be both width and height specified.');
 			}
 
@@ -345,7 +348,7 @@ class Image
 			}
 
 		} else {  // proportional
-			if (empty($newWidth) && empty($newHeight)) {
+			if (!$newWidth && !$newHeight) {
 				throw new Nette\InvalidArgumentException('At least width or height must be specified.');
 			}
 
@@ -410,17 +413,17 @@ class Image
 	 */
 	public static function calculateCutout($srcWidth, $srcHeight, $left, $top, $newWidth, $newHeight)
 	{
-		if (is_string($newWidth) && substr($newWidth, -1) === '%') {
-			$newWidth = (int) round($srcWidth / 100 * substr($newWidth, 0, -1));
+		if (self::isPercent($newWidth)) {
+			$newWidth = (int) round($srcWidth / 100 * $newWidth);
 		}
-		if (is_string($newHeight) && substr($newHeight, -1) === '%') {
-			$newHeight = (int) round($srcHeight / 100 * substr($newHeight, 0, -1));
+		if (self::isPercent($newHeight)) {
+			$newHeight = (int) round($srcHeight / 100 * $newHeight);
 		}
-		if (is_string($left) && substr($left, -1) === '%') {
-			$left = (int) round(($srcWidth - $newWidth) / 100 * substr($left, 0, -1));
+		if (self::isPercent($left)) {
+			$left = (int) round(($srcWidth - $newWidth) / 100 * $left);
 		}
-		if (is_string($top) && substr($top, -1) === '%') {
-			$top = (int) round(($srcHeight - $newHeight) / 100 * substr($top, 0, -1));
+		if (self::isPercent($top)) {
+			$top = (int) round(($srcHeight - $newHeight) / 100 * $top);
 		}
 		if ($left < 0) {
 			$newWidth += $left;
@@ -469,12 +472,12 @@ class Image
 		$width = $image->getWidth();
 		$height = $image->getHeight();
 
-		if (is_string($left) && substr($left, -1) === '%') {
-			$left = (int) round(($this->getWidth() - $width) / 100 * substr($left, 0, -1));
+		if (self::isPercent($left)) {
+			$left = (int) round(($this->getWidth() - $width) / 100 * $left);
 		}
 
-		if (is_string($top) && substr($top, -1) === '%') {
-			$top = (int) round(($this->getHeight() - $height) / 100 * substr($top, 0, -1));
+		if (self::isPercent($top)) {
+			$top = (int) round(($this->getHeight() - $height) / 100 * $top);
 		}
 
 		$output = $input = $image->image;
@@ -578,7 +581,7 @@ class Image
 		} catch (\Throwable $e) {
 		}
 		if (isset($e)) {
-			if (func_num_args()) {
+			if (func_num_args() || PHP_VERSION_ID >= 70400) {
 				throw $e;
 			}
 			trigger_error('Exception in ' . __METHOD__ . "(): {$e->getMessage()} in {$e->getFile()}:{$e->getLine()}", E_USER_ERROR);
@@ -632,7 +635,7 @@ class Image
 			}
 		}
 		$res = $function($this->image, ...$args);
-		return is_resource($res) && get_resource_type($res) === 'gd' ? $this->setImageResource($res) : $res;
+		return $res instanceof \GdImage || (is_resource($res) && get_resource_type($res) === 'gd') ? $this->setImageResource($res) : $res;
 	}
 
 
@@ -641,6 +644,22 @@ class Image
 		ob_start(function () {});
 		imagegd2($this->image);
 		$this->setImageResource(imagecreatefromstring(ob_get_clean()));
+	}
+
+
+	/**
+	 * @param  int|string  $num in pixels or percent
+	 */
+	private static function isPercent(&$num)
+	{
+		if (is_string($num) && substr($num, -1) === '%') {
+			$num = (float) substr($num, 0, -1);
+			return true;
+		} elseif (is_int($num) || $num === (string) (int) $num) {
+			$num = (int) $num;
+			return false;
+		}
+		throw new Nette\InvalidArgumentException("Expected dimension in int|string, '$num' given.");
 	}
 
 

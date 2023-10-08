@@ -194,7 +194,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 
 			// autoload components
 			foreach ($this->globalParams as $id => $foo) {
-				$this->getComponent($id, false);
+				$this->getComponent((string) $id, false);
 			}
 
 			if ($this->autoCanonicalize) {
@@ -1027,7 +1027,7 @@ abstract class Presenter extends Control implements Application\IPresenter
 			}
 
 			if (!isset($args[$name])) {
-				if (!$param->isDefaultValueAvailable() && !$param->allowsNull() && $type !== 'NULL' && $type !== 'array') {
+				if (!$param->isDefaultValueAvailable() && !$param->allowsNull() && $type !== 'NULL' && $type !== 'array' && $type !== 'iterable') {
 					$missing[] = $param;
 					unset($args[$name]);
 				}

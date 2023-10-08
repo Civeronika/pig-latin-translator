@@ -250,7 +250,7 @@ class SqlBuilder
 		}
 		return array_merge(
 			$this->parameters['select'],
-			$this->parameters['joinConditionSorted'] ? call_user_func_array('array_merge', $this->parameters['joinConditionSorted']) : [],
+			$this->parameters['joinConditionSorted'] ? array_merge(...array_values($this->parameters['joinConditionSorted'])) : [],
 			$this->parameters['where'],
 			$this->parameters['group'],
 			$this->parameters['having'],
@@ -268,6 +268,19 @@ class SqlBuilder
 		$this->conditions = $builder->conditions;
 		$this->aliases = $builder->aliases;
 		$this->reservedTableNames = $builder->reservedTableNames;
+	}
+
+
+	public function importGroupConditions(self $builder): bool
+	{
+		if ($builder->having) {
+			$this->group = $builder->group;
+			$this->having = $builder->having;
+			$this->parameters['group'] = $builder->parameters['group'];
+			$this->parameters['having'] = $builder->parameters['having'];
+			return true;
+		}
+		return false;
 	}
 
 

@@ -39,7 +39,7 @@ class Reflection
 	public static function getReturnType(\ReflectionFunctionAbstract $func)
 	{
 		return PHP_VERSION_ID >= 70000 && $func->hasReturnType()
-			? self::normalizeType((string) $func->getReturnType(), $func)
+			? self::normalizeType($func->getReturnType(), $func)
 			: null;
 	}
 
@@ -51,7 +51,7 @@ class Reflection
 	{
 		if (PHP_VERSION_ID >= 70000) {
 			return $param->hasType()
-				? self::normalizeType((string) $param->getType(), $param)
+				? self::normalizeType($param->getType(), $param)
 				: null;
 		} elseif ($param->isArray() || $param->isCallable()) {
 			return $param->isArray() ? 'array' : 'callable';
@@ -70,8 +70,14 @@ class Reflection
 
 	private static function normalizeType($type, $reflection)
 	{
+		if ($type instanceof \ReflectionUnionType) {
+			return null;
+		}
+		$type = PHP_VERSION_ID >= 70100 ? $type->getName() : (string) $type;
 		$lower = strtolower($type);
-		if ($lower === 'self') {
+		if ($reflection instanceof \ReflectionFunction) {
+			return $type;
+		} elseif ($lower === 'self' || $lower === 'static') {
 			return $reflection->getDeclaringClass()->getName();
 		} elseif ($lower === 'parent' && $reflection->getDeclaringClass()->getParentClass()) {
 			return $reflection->getDeclaringClass()->getParentClass()->getName();
@@ -231,11 +237,15 @@ class Reflection
 		$namespace = $class = $classLevel = $level = null;
 		$res = $uses = [];
 
+		$nameTokens = PHP_VERSION_ID < 80000
+			? [T_STRING, T_NS_SEPARATOR]
+			: [T_STRING, T_NS_SEPARATOR, T_NAME_QUALIFIED, T_NAME_FULLY_QUALIFIED];
+
 		while ($token = current($tokens)) {
 			next($tokens);
 			switch (is_array($token) ? $token[0] : $token) {
 				case T_NAMESPACE:
-					$namespace = ltrim(self::fetch($tokens, [T_STRING, T_NS_SEPARATOR]) . '\\', '\\');
+					$namespace = ltrim(self::fetch($tokens, $nameTokens) . '\\', '\\');
 					$uses = [];
 					break;
 
@@ -253,10 +263,10 @@ class Reflection
 					break;
 
 				case T_USE:
-					while (!$class && ($name = self::fetch($tokens, [T_STRING, T_NS_SEPARATOR]))) {
+					while (!$class && ($name = self::fetch($tokens, $nameTokens))) {
 						$name = ltrim($name, '\\');
 						if (self::fetch($tokens, '{')) {
-							while ($suffix = self::fetch($tokens, [T_STRING, T_NS_SEPARATOR])) {
+							while ($suffix = self::fetch($tokens, $nameTokens)) {
 								if (self::fetch($tokens, T_AS)) {
 									$uses[self::fetch($tokens, T_STRING)] = $name . $suffix;
 								} else {
