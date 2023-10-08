@@ -1,4 +1,6 @@
-<div n:foreach="$flashes as $flash" n:class="alert, 'alert-' . $flash->type">{$flash->message}</div>
+{block title}Pig Latin translator{/block}
+
+{block content}
 <h1>Pig Latin translator</h1>
 <div id="content">
     <form n:name=translationForm class=form>
@@ -57,3 +59,4 @@
     }
 
 </style>
+{/block}
