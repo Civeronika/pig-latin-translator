@@ -1,5 +1,59 @@
 <div n:foreach="$flashes as $flash" n:class="alert, 'alert-' . $flash->type">{$flash->message}</div>
-
+<h1>Pig Latin translator</h1>
 <div id="content">
-	{control translationForm}
+    <form n:name=translationForm class=form>
+        <ul class="errors" n:ifcontent>
+            <li n:foreach="$form->getOwnErrors() as $error">{$error}</li>
+        </ul>
+
+        <div id='english'>
+            <div class='label'>{label english /}{input english, size: 20, autofocus: true}</div>
+            <div class='input'>{inputError english}</div>
+        </div>
+        <div id='submit-block'>
+            {input translate, class: "btn btn-default"}
+        </div>
+        <div id='pigLatin'>
+            <div class='label'>{label pigLatin /}{input pigLatin, size: 20}</div>
+            <div class='input'>{inputError pigLatin}</div>
+        </div>
+    </form>
 </div>
+
+<style>
+    h1 {
+        text-align: center;
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+    }
+
+    #content {
+        min-width: 300px;
+        width: 90%;
+        max-width: 500px;
+        margin: auto;
+    }
+
+    #submit-block {
+        text-align: center;
+    }
+
+    #submit-block .btn {
+        margin: 20px 0px 0px 0px;
+        padding: 7px 15px;
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+    }
+
+    #english textarea,
+    #pigLatin textarea {
+        width: 100%;
+        min-height: 70px;
+    }
+
+    #english label,
+    #pigLatin label {
+        display: block;
+        padding: 15px 0px;
+        font-family: Verdana, Arial, Helvetica, sans-serif;
+    }
+
+</style>

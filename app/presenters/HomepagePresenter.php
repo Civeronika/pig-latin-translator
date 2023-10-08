@@ -27,7 +27,7 @@ final class HomepagePresenter extends Nette\Application\UI\Presenter
 			->setRequired('Enter your text')
 			->setEmptyValue('Enter your text');
 
-		$pigLatin = $form->addTextArea('pigLatin', 'Pig latin text:')
+		$pigLatin = $form->addTextArea('pigLatin', 'Pig Latin text:')
 			->setDisabled()
 			->setDefaultValue('Translated text will be here');
 
