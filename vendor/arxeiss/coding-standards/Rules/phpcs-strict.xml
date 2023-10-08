@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Arxeiss PHP Standard - Strict rules">
+
+    <config name="installed_paths" value="../../slevomat/coding-standard"/>
+
+    <!-- Generic -->
+    <rule ref="Generic.CodeAnalysis.ForLoopWithTestFunctionCall"/>
+    <rule ref="Generic.Formatting.SpaceAfterNot"> <!-- Checks there is 0 lines after ! operator -->
+        <properties>
+            <property name="spacing" value="0"/>
+        </properties>
+    </rule>
+
+    <!-- PEAR -->
+    <rule ref="PEAR.Commenting.FunctionComment.ParamNameNoMatch"> <!-- Causing conflicts with stricter Slevomat rules -->
+        <severity>0</severity>
+    </rule>
+
+    <!-- Squiz -->
+    <rule ref="Squiz.Strings.DoubleQuoteUsage"/> <!-- Insert again, as the next rule override everything from previous file -->
+    <rule ref="Squiz.Strings.DoubleQuoteUsage.ContainsVar"> <!-- Double quote string cannot contains $variables -->
+        <severity>5</severity>
+        <message>Variable "%s" not allowed in double quoted string; use sprintf() instead</message>
+    </rule>
+    <rule ref="Squiz.PHP.CommentedOutCode"/> <!-- Disable commenting code -->
+
+    <!-- Slevomat -->
+    <rule ref="SlevomatCodingStandard.Arrays.DisallowImplicitArrayCreation"/> <!-- Check using of $a[] without specifying $a is array -->
+    <rule ref="SlevomatCodingStandard.Arrays.SingleLineArrayWhitespace"/> <!-- Check no empty spaces in array defining in the beginning and end -->
+    <rule ref="SlevomatCodingStandard.Classes.ClassLength"/> <!-- Check maximum length of class -->
+    <rule ref="SlevomatCodingStandard.Classes.PropertyDeclaration"> <!-- Correct spacing for property type hints -->
+        <properties>
+            <property name="checkPromoted" value="true"></property>
+            <property name="enableMultipleSpacesBetweenModifiersCheck" value="true"></property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Commenting.ForbiddenAnnotations"> <!-- Disable listed annotations -->
+        <properties>
+            <property name="forbiddenAnnotations" type="array">
+                <element value="@author"/>
+                <element value="@created"/>
+                <element value="@copyright"/>
+                <element value="@license"/>
+                <element value="@package"/>
+                <element value="@version"/>
+            </property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Commenting.UselessFunctionDocComment"> <!-- If native type hints does enough, function comment can be useless -->
+        <type>warning</type>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.AssignmentInCondition"/> <!-- Only comparison in condition, no assignment -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireShortTernaryOperator"/> <!-- Require ?: if possible -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireSingleLineCondition"> <!-- If condition can be placed on single line, it will force it -->
+        <properties>
+            <property name="alwaysForSimpleConditions" value="false"></property>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.UselessIfConditionWithReturn"> <!-- Check usage of if with only return true/false followed by return true/false -->
+        <properties>
+            <property name="assumeAllConditionExpressionsAreAlreadyBoolean" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.UselessTernaryOperator"/> <!-- Check when ternary operator can be shortened -->
+    <rule ref="SlevomatCodingStandard.Files.FileLength"/> <!-- Check maximum length of file -->
+    <rule ref="SlevomatCodingStandard.Functions.RequireSingleLineCall"/> <!-- If function call can be placed on single line, it will force it -->
+    <rule ref="SlevomatCodingStandard.Operators.DisallowEqualOperators"/> <!-- Disallow use == or != and must use === and !== -->
+    <rule ref="SlevomatCodingStandard.Operators.DisallowIncrementAndDecrementOperators"/> <!-- Disable use of $i++ must use $i += 1 etc.. -->
+    <rule ref="SlevomatCodingStandard.TypeHints.DeclareStrictTypes"> <!-- File must have declare strict types with correct spacing -->
+        <properties>
+            <property name="linesCountBeforeDeclare" value="1"/>
+            <property name="linesCountAfterDeclare" value="1"/>
+            <property name="spacesCountAroundEqualsSign" value="0"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.LongTypeHints"/> <!-- Disable long type hints -->
+    <rule ref="SlevomatCodingStandard.TypeHints.NullableTypeForNullDefaultValue"/> <!-- Parameter must be nullable if has null default value -->
+    <rule ref="SlevomatCodingStandard.TypeHints.NullTypeHintOnLastPosition"/> <!-- In doc block |null must be last -->
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint"> <!-- Check correct type hints -->
+        <properties>
+            <property name="enableMixedTypeHint" value="false"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHint.UselessAnnotation">
+        <severity>0</severity>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ParameterTypeHintSpacing"/> <!-- Correct spacing for parameter type hints -->
+    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint"> <!-- Check type hint for class property -->
+        <properties>
+            <property name="enableMixedTypeHint" value="false"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint.UselessAnnotation">
+        <severity>0</severity>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint"> <!-- Correct return type hint -->
+        <properties>
+            <property name="enableMixedTypeHint" value="false"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.ReturnTypeHint.UselessAnnotation">
+        <severity>0</severity>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.UnionTypeHintFormat"> <!-- Checks format of union type hints -->
+        <properties>
+            <property name="withSpaces" value="false"/>
+            <property name="shortNullable" value="true"/>
+            <property name="nullPosition" value="last"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.TypeHints.UselessConstantTypeHint"/> <!-- Disable comments for constants -->
+
+</ruleset>

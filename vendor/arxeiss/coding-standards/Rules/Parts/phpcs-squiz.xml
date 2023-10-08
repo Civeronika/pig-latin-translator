@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Arxeiss PHP Standard - Squiz rules">
+    <rule ref="Squiz.Arrays.ArrayBracketSpacing"/> <!-- No spaces in the beginning and end of array access -->
+    <rule ref="Squiz.Arrays.ArrayDeclaration">
+        <exclude name="Squiz.Arrays.ArrayDeclaration.CloseBraceNewLine"/><!-- does not handle wrapped content -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.CloseBraceNotAligned"/><!-- expects closing brace at the same level as opening brace -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.DoubleArrowNotAligned"/><!-- we don't want spacing with alignment -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.FirstIndexNoNewline"/><!-- expects multi-value array always written on multiple lines -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.FirstValueNoNewline"/><!-- expects multi-value array always written on multiple lines -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.KeyNotAligned"/><!-- uses indentation of only single space -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.KeySpecified"/><!-- If used keys, all entries must have a key -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.MultiLineNotAllowed"/><!-- even a single-value array can be written on multiple lines -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.NoComma"/><!-- does not handle nested array access with complex keys on multiple lines; also already checked better by SlevomatCodingStandard.Arrays.TrailingArrayComma -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.NoCommaAfterLast"/><!-- expects multi-value array always written on multiple lines -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.SingleLineNotAllowed"/><!-- multiple values can be written on a single line -->
+        <exclude name="Squiz.Arrays.ArrayDeclaration.ValueNotAligned"/><!-- we don't want spacing with alignment -->
+    </rule>
+    <rule ref="Squiz.Classes.ClassFileName"/> <!-- File name match class name -->
+    <rule ref="Squiz.Classes.SelfMemberReference"/> <!-- self:: is lowercase and without extra whitespace -->
+    <rule ref="Squiz.Commenting.DocCommentAlignment"/> <!-- Stars in comment are aligned -->
+    <rule ref="Squiz.Commenting.EmptyCatchComment"/> <!-- Empty catch must have a comment -->
+    <rule ref="Squiz.Commenting.FunctionComment.InvalidReturnVoid"/> <!-- Check if present @return void but method is returning value -->
+    <rule ref="Squiz.Commenting.FunctionComment.SpacingAfterParamType"/> <!-- Correct spacing after @param type -->
+    <rule ref="Squiz.Commenting.FunctionComment.SpacingAfterParamName"/> <!-- Correct spacing after @param name -->
+    <rule ref="Squiz.Commenting.FunctionComment.DuplicateReturn">
+        <message>Only 1 @return annotation is allowed in a function comment</message>
+    </rule>
+    <rule ref="Squiz.Commenting.FunctionComment.ExtraParamComment">
+        <message>Extra @param annotation</message>
+    </rule>
+    <rule ref="Squiz.Commenting.FunctionComment.InvalidNoReturn">
+        <message>Function has no return statement, but annotation @return is present</message>
+    </rule>
+    <rule ref="Squiz.Operators.ValidLogicalOperators"/> <!-- && and || must be used instead of 'and' or 'or' -->
+    <rule ref="Squiz.PHP.Eval"> <!-- Disable eval function -->
+        <type>error</type>
+    </rule>
+    <rule ref="Squiz.PHP.GlobalKeyword"/> <!-- global is disabled -->
+    <rule ref="Squiz.PHP.Heredoc"/> <!-- Bans the use of heredocs and nowdocs -->
+    <rule ref="Squiz.PHP.InnerFunctions"/> <!-- Disable functions inside function except closures -->
+    <rule ref="Squiz.PHP.LowercasePHPFunctions"/> <!-- calls to inbuilt PHP functions are lowercase -->
+    <rule ref="Squiz.PHP.NonExecutableCode"/> <!-- Warning about unreachable code -->
+    <rule ref="Squiz.Scope.StaticThisUsage"/> <!-- Disable usage of $this in static methods -> will cause runtime errors. -->
+    <rule ref="Squiz.Strings.DoubleQuoteUsage"/> <!-- Not use double quotes when not needed -->
+    <rule ref="Squiz.Strings.DoubleQuoteUsage.ContainsVar"> <!-- Hide message about containing vars in double quotes -->
+        <severity>0</severity>
+    </rule>
+    <rule ref="Squiz.WhiteSpace.FunctionSpacing"> <!-- Empty lines between functions definitions -->
+        <properties>
+            <property name="spacing" value="1"/>
+            <property name="spacingBeforeFirst" value="0"/>
+            <property name="spacingAfterLast" value="0"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.WhiteSpace.ObjectOperatorSpacing"> <!-- No spaces around object operator -> and :: -->
+        <properties>
+            <property name="ignoreNewlines" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="Squiz.WhiteSpace.SemicolonSpacing"/> <!-- No spaces before semicolon -->
+</ruleset>

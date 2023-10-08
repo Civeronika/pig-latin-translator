@@ -22,12 +22,17 @@
 		"tracy/tracy": "^2.4"
 	},
 	"require-dev": {
-		"nette/tester": "^2.0"
+		"nette/tester": "^2.0",
+		"phpstan/phpstan": "^1.10",
+		"arxeiss/coding-standards": "^0.12.0"
 	},
 	"minimum-stability": "stable",
 	"config": {
 		"platform": {
 			"php": "7.4"
+		},
+		"allow-plugins": {
+			"dealerdirect/phpcodesniffer-composer-installer": true
 		}
 	}
 }

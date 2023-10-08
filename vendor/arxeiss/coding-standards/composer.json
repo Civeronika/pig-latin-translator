@@ -1,0 +1,22 @@
+{
+    "name": "arxeiss/coding-standards",
+    "description": "Custom PHP CodeSniffer ruleset",
+    "license": "Apache-2.0",
+	"type": "phpcodesniffer-standard",
+    "authors": [
+        {
+            "name": "Pavel Kutáč",
+            "email": "pavel.kutac@gmail.com",
+            "homepage" : "https://www.kutac.cz"
+        }
+    ],
+    "require": {
+    	"php": "^7.2 || ^8.0",
+        "slevomat/coding-standard": "^8.11.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

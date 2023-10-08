@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<ruleset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Arxeiss PHP Standard - Slevomat rules">
+
+    <config name="installed_paths" value="../../slevomat/coding-standard"/>
+
+    <rule ref="SlevomatCodingStandard.Arrays.TrailingArrayComma"/> <!-- Multiline array must have trailing comma -->
+    <rule ref="SlevomatCodingStandard.Arrays.MultiLineArrayEndBracketPlacement"/>
+    <rule ref="SlevomatCodingStandard.Classes.BackedEnumTypeSpacing" /> <!-- Checks spacing for type hints for Enums -->
+    <rule ref="SlevomatCodingStandard.Classes.ClassConstantVisibility" /> <!-- Constants must have visibility operator -->
+    <rule ref="SlevomatCodingStandard.Classes.ConstantSpacing"> <!-- Proper spacing for constants with and without docblock -->
+        <properties>
+            <property name="maxLinesCountBeforeWithoutComment" value="0"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Classes.DisallowLateStaticBindingForConstants"/> <!-- Disable static:: for constants -->
+    <rule ref="SlevomatCodingStandard.Classes.DisallowMultiConstantDefinition"/> <!-- Cannot be more constants on the same row -->
+    <rule ref="SlevomatCodingStandard.Classes.DisallowMultiPropertyDefinition"/> <!-- Cannot be more properties on the same row -->
+    <rule ref="SlevomatCodingStandard.Classes.DisallowStringExpressionPropertyFetch"/> <!-- Simplify direct property name and not inside {} -->
+    <rule ref="SlevomatCodingStandard.Classes.EmptyLinesAroundClassBraces"> <!-- No empty lines in the start and end of class -->
+        <properties>
+            <property name="linesCountAfterOpeningBrace" value="0"/>
+            <property name="linesCountBeforeClosingBrace" value="0"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Classes.EnumCaseSpacing"/> <!-- Spacing between enum cases -->
+    <rule ref="SlevomatCodingStandard.Classes.ModernClassNameReference"/> <!-- Replace old get_called_class() etc via modern constructs -->
+    <rule ref="SlevomatCodingStandard.Classes.ParentCallSpacing"/> <!-- Enforce empty lines around parent method call -->
+    <rule ref="SlevomatCodingStandard.Classes.PropertySpacing"/> <!-- Proper spacing for property with and without docblock -->
+    <rule ref="SlevomatCodingStandard.Classes.RequireMultiLineMethodSignature"/> <!-- Method signature should be multiline if exceed 120 chars -->
+    <rule ref="SlevomatCodingStandard.Classes.RequireSelfReference"/> <!-- Use self instead of Class name -->
+    <rule ref="SlevomatCodingStandard.Classes.RequireSingleLineMethodSignature"/> <!-- Method signature should be single line if does not exceed 120 chars -->
+    <rule ref="SlevomatCodingStandard.Classes.TraitUseSpacing"> <!-- Spacing around use traits -->
+        <properties>
+            <property name="linesCountBeforeFirstUse" value="0"/>
+            <property name="linesCountAfterLastUseWhenLastInClass" value="0"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Classes.UselessLateStaticBinding"/> <!-- Replace static:: into self:: when class/method is final -->
+    <rule ref="SlevomatCodingStandard.Commenting.AnnotationName"/> <!-- Checks correct annotation spelling -->
+    <rule ref="SlevomatCodingStandard.Commenting.DeprecatedAnnotationDeclaration"/> <!-- @deprecated has to have explanation -->
+    <rule ref="SlevomatCodingStandard.Commenting.EmptyComment"/> <!-- Disable empty comments -->
+    <rule ref="SlevomatCodingStandard.Commenting.InlineDocCommentDeclaration"/> <!-- Check valid inline @var doc -->
+    <rule ref="SlevomatCodingStandard.Commenting.RequireOneLinePropertyDocComment"/> <!-- Use single line comment for property -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.DisallowContinueWithoutIntegerOperandInSwitch"/> <!-- Name explains it well -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.DisallowTrailingMultiLineTernaryOperator"/> <!-- ? and : must be on the beginning of line -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit"> <!-- Check useless nesting if return or exit is in scope -->
+        <properties>
+            <property name="ignoreStandaloneIfInScope" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.EarlyExit.EarlyExitNotUsed"> <!-- Disable early exit sniff for last if -->
+        <severity>0</severity>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing"/> <!-- Return, break etc must have empty lines before, if not first in scope -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.LanguageConstructWithParentheses"/> <!-- Disable parentheses for some PHP constructs like break, return, echo -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.NewWithParentheses"/> <!-- New must have () even when no params are passed -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireMultiLineCondition"/> <!-- Can fix when max line length of if, elseif, while, do-while is exceeded -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireMultiLineTernaryOperator"> <!-- Can fix too line length for ternary operator -->
+        <properties>
+            <property name="lineLengthLimit" value="120"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullCoalesceOperator"/> <!-- Use null coalesce ?? instead of ternary when possible -->
+    <rule ref="SlevomatCodingStandard.ControlStructures.RequireNullSafeObjectOperator"/> <!-- Requires using ?-> operator -->
+    <rule ref="SlevomatCodingStandard.Exceptions.DeadCatch"/> <!-- Check unreachable catch blocks -->
+    <rule ref="SlevomatCodingStandard.Exceptions.ReferenceThrowableOnly"/> <!-- \Exception should be \Throwable -->
+    <rule ref="SlevomatCodingStandard.Exceptions.RequireNonCapturingCatch"/> <!-- Require non-capturing catch when the variable with exception is not used. -->
+    <rule ref="SlevomatCodingStandard.Functions.ArrowFunctionDeclaration"/> <!-- Spacing around PHP 7.4 arrow functions -->
+    <rule ref="SlevomatCodingStandard.Functions.DisallowEmptyFunction"/> <!-- Empty function must have a comment why is empty -->
+    <rule ref="SlevomatCodingStandard.Functions.RequireMultiLineCall"/> <!-- Can fix when max line length of function call is exceeded -->
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInCall"/> <!-- PHP 7.3+ add trailing comma in multiline function call -->
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInClosureUse"/> <!-- PHP 8.0+ add trailing comma in multiline closure use declaration -->
+    <rule ref="SlevomatCodingStandard.Functions.RequireTrailingCommaInDeclaration"/> <!-- PHP 8.0+ add trailing comma in multiline function declaration -->
+    <rule ref="SlevomatCodingStandard.Functions.StaticClosure"/> <!-- Use static closure if not using $this -->
+    <rule ref="SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure"/> <!-- Check unused variable in use() for closure -->
+    <rule ref="SlevomatCodingStandard.Functions.UselessParameterDefaultValue" />
+    <rule ref="SlevomatCodingStandard.Namespaces.AlphabeticallySortedUses"/> <!-- Namespace use sort alphabetically -->
+    <rule ref="SlevomatCodingStandard.Namespaces.DisallowGroupUse"/> <!-- Group use namespaces declaration is disallowed -->
+    <rule ref="SlevomatCodingStandard.Namespaces.FullyQualifiedExceptions"/> <!-- Exception is always fully qualified class names -->
+    <rule ref="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalConstants"/> <!-- PHP global constants must use fully qualified names -->
+    <rule ref="SlevomatCodingStandard.Namespaces.FullyQualifiedGlobalFunctions"/> <!-- PHP global functions must use fully qualified names -->
+    <rule ref="SlevomatCodingStandard.Namespaces.NamespaceDeclaration"/> <!-- Correct namespace declaration with spaces -->
+    <rule ref="SlevomatCodingStandard.Namespaces.NamespaceSpacing"/> <!-- Check spaces before and after namespace -->
+    <rule ref="SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly"> <!-- Always use "use" etc except global functions and exceptions -->
+        <properties>
+            <property name="searchAnnotations" value="true"/>
+            <property name="allowFullyQualifiedGlobalConstants" value="true"/>
+            <property name="allowFullyQualifiedExceptions" value="true"/>
+            <property name="allowPartialUses" value="false"/>
+            <property name="allowFullyQualifiedGlobalFunctions" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Namespaces.RequireOneNamespaceInFile"/> <!-- Only 1 namespace in file -->
+    <rule ref="SlevomatCodingStandard.Namespaces.UnusedUses"> <!-- Remove unused use -->
+        <properties>
+            <property name="searchAnnotations" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Namespaces.UseDoesNotStartWithBackslash"/> <!-- Namespace in use must not start with / -->
+    <rule ref="SlevomatCodingStandard.Namespaces.UselessAlias"/> <!-- Disable useless namespace alias -->
+    <rule ref="SlevomatCodingStandard.Numbers.DisallowNumericLiteralSeparator"/> <!-- Disable write number with _ between thousands etc -->
+    <rule ref="SlevomatCodingStandard.Namespaces.UseSpacing"/> <!-- Empty lines around use statements -->
+    <rule ref="SlevomatCodingStandard.Operators.NegationOperatorSpacing"/> <!-- No spaces after - (minus) when is meant as negative number -->
+    <rule ref="SlevomatCodingStandard.Operators.RequireCombinedAssignmentOperator"/> <!-- Disable $a = $a +1 but requires += etc -->
+    <rule ref="SlevomatCodingStandard.Operators.SpreadOperatorSpacing"/> <!-- No space after ... operator -->
+    <rule ref="SlevomatCodingStandard.PHP.DisallowDirectMagicInvokeCall"/> <!-- Cannot call directly __invoke method -->
+    <rule ref="SlevomatCodingStandard.PHP.OptimizedFunctionsWithoutUnpacking"/> <!-- In listed function ... must not be used -->
+    <rule ref="SlevomatCodingStandard.PHP.ReferenceSpacing"/> <!-- No spaces after references reference operator -->
+    <rule ref="SlevomatCodingStandard.PHP.ShortList"/> <!-- Disable list() use [] -->
+    <rule ref="SlevomatCodingStandard.PHP.TypeCast"/> <!-- Enforces using shorthand cast operators integer -> int -->
+    <rule ref="SlevomatCodingStandard.PHP.UselessSemicolon"/> <!-- Check extra semicolon which is superfluous -->
+    <rule ref="SlevomatCodingStandard.PHP.UselessParentheses">
+        <properties>
+            <property name="ignoreComplexTernaryConditions" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Strings.DisallowVariableParsing"> <!-- How variables can be reference inside double quoted string -->
+        <properties>
+            <property name="disallowSimpleSyntax" value="true"/>
+        </properties>
+    </rule>
+    <rule ref="SlevomatCodingStandard.Variables.DisallowSuperGlobalVariable"/> <!-- Global variables are prohibited -->
+    <rule ref="SlevomatCodingStandard.Variables.DisallowVariableVariable"/> <!-- Disallow double dollar etc -->
+    <rule ref="SlevomatCodingStandard.Variables.DuplicateAssignmentToVariable"/> <!-- Check duplicate assignment into same variable -->
+    <rule ref="SlevomatCodingStandard.Variables.UnusedVariable"/> <!-- Try to detect unused variables -->
+    <rule ref="SlevomatCodingStandard.Whitespaces.DuplicateSpaces"> <!-- Detect duplicate spaces except assignment and comments -->
+        <properties>
+            <property name="ignoreSpacesBeforeAssignment" value="true"/>
+            <property name="ignoreSpacesInAnnotation" value="true"/>
+        </properties>
+    </rule>
+</ruleset>
