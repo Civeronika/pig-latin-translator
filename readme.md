@@ -1,57 +1,41 @@
-Nette Web Project
-=================
+# Pig Latin translator
+Pig Latin translator is created as PHP\Nette test project. 
 
-This is a simple, skeleton application using the [Nette](https://nette.org). This is meant to
-be used as a starting point for your new projects.
+Translation is implemented as simple form at the homepage. 
 
-[Nette](https://nette.org) is a popular tool for PHP web development.
-It is designed to be the most usable and friendliest as possible. It focuses
-on security and performance and is definitely one of the safest PHP frameworks.
+English strings are translated to pig latin strings:
+- words starting with *consonants*:
+- - search for the longest consonant cluster and process as (cluster)someting => someting-(cluster)ay
+- words starting with *vowels*: 
+- - (vowel)word => (vowel)word-ay
+- keeps unsupported words as they are
 
-If you like Nette, **[please make a donation now](https://nette.org/donate)**. Thank you!
-
-
-Requirements
-------------
-
-PHP 5.6 or higher.
-
-
-Installation
-------------
-
-The best way to install Web Project is using Composer. If you don't have Composer yet,
-download it following [the instructions](https://doc.nette.org/composer). Then use command:
-
-	composer create-project nette/web-project path/to/install
-	cd path/to/install
+String processing details:
+- string processing is case insensitive
+- input text is splitted to words by whitespaces, output removes additional empty spaces
+- ignore, but keep standard sentences characters at the end of the words, as .,!?
+- consonant clusters specified by [Practice consonant clusters](https://usefulenglish.ru/phonetics/practice-consonant-clusters)
 
 
-Make directories `temp/` and `log/` writable.
+---
+
+## Requirements
+PHP 7.4 or higher.
+
+## Nette version
+This project uses Nette 2.4 version. 
 
 
-Web Server Setup
-----------------
+---
 
-The simplest way to get started is to start the built-in PHP server in the root directory of your project:
+## Code style
+Code style is checked by [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer).
 
-	php -S localhost:8000 -t www
+`./vendor/bin/phpcs --standard=./phpcs.xml`
 
-Then visit `http://localhost:8000` in your browser to see the welcome page.
+## PHP code standards
+PHP ode standards are checked by [PHPStan](https://phpstan.org/).
 
-For Apache or Nginx, setup a virtual host to point to the `www/` directory of the project and you
-should be ready to go.
+`vendor/bin/phpstan analyse --level=max app`
 
-**It is CRITICAL that whole `app/`, `log/` and `temp/` directories are not accessible directly
-via a web browser. See [security warning](https://nette.org/security-warning).**
-
-Notice: Composer PHP version
-----------------------------
-This project forces `PHP 5.6` as your PHP version for Composer packages. If you have newer version on production you should change it in `composer.json`.
-```json
-"config": {
-	"platform": {
-		"php": "7.0"
-	}
-}
-```
+## Automated tests
