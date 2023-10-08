@@ -4,11 +4,21 @@ declare(strict_types=1);
 
 namespace App\Presenters;
 
+use App\Service\TranslationService;
 use Nette;
 use Nette\Application\UI\Form;
 
 final class HomepagePresenter extends Nette\Application\UI\Presenter
 {
+	protected TranslationService $translationService;
+
+	public function __construct(TranslationService $translationService)
+	{
+		$this->translationService = $translationService;
+
+		parent::__construct();
+	}
+
 	protected function createComponentTranslationForm(): Form
 	{
 		$form = new Form();
@@ -23,10 +33,11 @@ final class HomepagePresenter extends Nette\Application\UI\Presenter
 
 		$form->addSubmit('translate', 'Translate');
 
-		$form->onSuccess[] = static function () use ($english, $pigLatin): void {
+		$translationService = $this->translationService;
+		$form->onSuccess[] = static function () use ($english, $pigLatin, $translationService): void {
 			/** @var string $englishText */
 			$englishText = $english->getValue();
-			$translatedText = sprintf('translated "%s"', $englishText);
+			$translatedText = $translationService->translateToPigLatin($englishText);
 			$pigLatin->setDefaultValue($translatedText);
 		};
 
