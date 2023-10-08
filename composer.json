@@ -22,7 +22,7 @@
 		"tracy/tracy": "^2.4"
 	},
 	"require-dev": {
-		"nette/tester": "^2.0",
+		"nette/tester": "^2.4",
 		"phpstan/phpstan": "^1.10",
 		"arxeiss/coding-standards": "^0.12.0"
 	},

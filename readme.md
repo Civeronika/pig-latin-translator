@@ -30,12 +30,12 @@ This project uses Nette 2.4 version.
 
 ## Code style
 Code style is checked by [PHP CodeSniffer](https://github.com/squizlabs/PHP_CodeSniffer).
-
 `./vendor/bin/phpcs --standard=./phpcs.xml`
 
 ## PHP code standards
 PHP ode standards are checked by [PHPStan](https://phpstan.org/).
-
-`vendor/bin/phpstan analyse --level=max app`
+`vendor/bin/phpstan analyse --level=max app tests`
 
 ## Automated tests
+Automated service output tests by [Nette Tester](https://tester.nette.org/)
+`vendor/bin/tester tests`
