@@ -38,4 +38,4 @@ PHP ode standards are checked by [PHPStan](https://phpstan.org/).
 
 ## Automated tests
 Automated service output tests by [Nette Tester](https://tester.nette.org/)
-`vendor/bin/tester tests`
+`vendor/bin/tester --log tests/log/tests.log tests`
